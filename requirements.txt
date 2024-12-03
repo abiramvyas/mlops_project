@@ -1,0 +1,8 @@
+streamlit
+google-cloud-pubsub
+pydantic
+uvicorn
+fastapi
+xgboost
+scikit-learn
+pydantic_settings
