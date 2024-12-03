@@ -1,0 +1,10 @@
+pubsub:
+  topic_name: publisher
+  subscription_name: publisher-sub
+
+cloud_run:
+  service_name: mlops-project
+  region: us-central1
+
+gcp:
+  project_id: mlops-project-440315
