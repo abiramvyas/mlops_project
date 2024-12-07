@@ -1,8 +1,16 @@
+options:
+  logging: CLOUD_LOGGING_ONLY
+
 steps:
+  # Build the Subscriber container
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', 'gcr.io/mlops-project-440315/subscriber', '-f', 'Dockerfile.subscriber', '.']
+  
+  # Push to Container Registry
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'gcr.io/mlops-project-440315/subscriber']
+  
+  # Deploy to mlops-subscriber VM
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
     args:
@@ -16,6 +24,7 @@ steps:
         docker stop subscriber-container || true && \
         docker rm subscriber-container || true && \
         docker run -d --name subscriber-container \
+          -v $(pwd)/fastapi_service:/app/fastapi_service \
           --restart always \
           gcr.io/mlops-project-440315/subscriber
       '
