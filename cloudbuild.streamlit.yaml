@@ -1,8 +1,16 @@
+options:
+  logging: CLOUD_LOGGING_ONLY
+
 steps:
+  # Build the Streamlit container
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', 'gcr.io/mlops-project-440315/streamlit-ui', '-f', 'Dockerfile.streamlit', '.']
+  
+  # Push to Container Registry
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'gcr.io/mlops-project-440315/streamlit-ui']
+  
+  # Deploy to streamline-fe VM
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
     args:
@@ -17,6 +25,7 @@ steps:
         docker rm streamlit-container || true && \
         docker run -d --name streamlit-container \
           -p 8501:8501 \
+          -v $(pwd)/streamlit_ui:/app/streamlit_ui \
           --restart always \
           gcr.io/mlops-project-440315/streamlit-ui
       '
