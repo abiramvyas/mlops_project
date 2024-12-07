@@ -18,4 +18,4 @@ steps:
       - streamline-fe
       - --zone=us-central1-c
       - --tunnel-through-iap
-      - --command="sudo apt-get update && sudo apt-get install -y docker.io && sudo systemctl start docker && sudo usermod -aG docker $USER && sudo gcloud auth configure-docker && sudo docker pull gcr.io/mlops-project-440315/streamlit-ui && sudo docker stop streamlit-container || true && sudo docker rm streamlit-container || true && sudo docker run -d --name streamlit-container -p 8501:8501 -v $(pwd)/streamlit_ui:/app/streamlit_ui --restart always gcr.io/mlops-project-440315/streamlit-ui"
+      - --command="sudo apt-get update && sudo apt-get install -y docker.io && sudo systemctl start docker && sudo gcloud auth configure-docker && sudo docker pull gcr.io/mlops-project-440315/streamlit-ui && sudo docker stop streamlit-container || true && sudo docker rm streamlit-container || true && sudo docker run -d --name streamlit-container -p 8501:8501 -v /streamlit_ui:/app/streamlit_ui --restart always gcr.io/mlops-project-440315/streamlit-ui"
