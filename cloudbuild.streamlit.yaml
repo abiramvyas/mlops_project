@@ -18,12 +18,4 @@ steps:
       - streamline-fe
       - --zone=us-central1-c
       - --tunnel-through-iap
-      - --command=|
-          gcloud auth configure-docker && \
-          docker pull gcr.io/mlops-project-440315/streamlit-ui && \
-          docker stop streamlit-container || true && \
-          docker rm streamlit-container || true && \
-          docker run -d --name streamlit-container \
-            -p 8501:8501 \
-            --restart always \
-            gcr.io/mlops-project-440315/streamlit-ui
+      - --command="gcloud auth configure-docker && docker pull gcr.io/mlops-project-440315/streamlit-ui && docker stop streamlit-container || true && docker rm streamlit-container || true && docker run -d --name streamlit-container -p 8501:8501 --restart always gcr.io/mlops-project-440315/streamlit-ui"

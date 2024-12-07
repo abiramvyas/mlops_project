@@ -2,27 +2,20 @@ options:
   logging: CLOUD_LOGGING_ONLY
 
 steps:
-  # Build the Subscriber container
+  # Build the Streamlit container
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'gcr.io/mlops-project-440315/subscriber', '-f', 'Dockerfile.subscriber', '.']
+    args: ['build', '-t', 'gcr.io/mlops-project-440315/streamlit-ui', '-f', 'Dockerfile.streamlit', '.']
   
   # Push to Container Registry
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/mlops-project-440315/subscriber']
+    args: ['push', 'gcr.io/mlops-project-440315/streamlit-ui']
   
-  # Deploy to mlops-subscriber VM using IAP tunneling
+  # Deploy to streamline-fe VM using IAP tunneling
   - name: 'gcr.io/cloud-builders/gcloud'
     args:
       - compute
       - ssh
-      - mlops-subscriber
-      - --zone=us-central1-a
+      - streamline-fe
+      - --zone=us-central1-c
       - --tunnel-through-iap
-      - --command=|
-          gcloud auth configure-docker && \
-          docker pull gcr.io/mlops-project-440315/subscriber && \
-          docker stop subscriber-container || true && \
-          docker rm subscriber-container || true && \
-          docker run -d --name subscriber-container \
-            --restart always \
-            gcr.io/mlops-project-440315/subscriber
+      - --command="gcloud auth configure-docker && docker pull gcr.io/mlops-project-440315/streamlit-ui && docker stop streamlit-container || true && docker rm streamlit-container || true && docker run -d --name streamlit-container -p 8501:8501 --restart always gcr.io/mlops-project-440315/streamlit-ui"
