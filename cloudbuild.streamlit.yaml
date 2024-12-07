@@ -10,13 +10,14 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'gcr.io/mlops-project-440315/streamlit-ui']
   
-  # Deploy to streamline-fe VM using gcloud compute ssh
+  # Deploy to streamline-fe VM using IAP tunneling
   - name: 'gcr.io/cloud-builders/gcloud'
     args:
       - compute
       - ssh
       - streamline-fe
       - --zone=us-central1-c
+      - --tunnel-through-iap
       - --command=|
           gcloud auth configure-docker && \
           docker pull gcr.io/mlops-project-440315/streamlit-ui && \
