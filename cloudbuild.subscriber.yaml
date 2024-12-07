@@ -9,13 +9,39 @@ steps:
   # Push to Container Registry
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'gcr.io/mlops-project-440315/subscriber']
-  
-  # Deploy to mlops-subscriber VM using IAP tunneling
+
+  # Create deployment script
+  - name: 'ubuntu'
+    args:
+    - bash
+    - -c
+    - |
+      cat > deploy.sh << 'EOF'
+      #!/bin/bash
+      sudo apt-get update
+      sudo apt-get install -y docker.io
+      sudo systemctl start docker
+      sudo gcloud auth configure-docker
+      sudo docker pull gcr.io/mlops-project-440315/subscriber
+      sudo docker stop subscriber-container || true
+      sudo docker rm subscriber-container || true
+      sudo docker run -d --name subscriber-container -v /fastapi_service:/app/fastapi_service --restart always gcr.io/mlops-project-440315/subscriber
+      EOF
+      chmod +x deploy.sh
+
+  # Copy and execute script on VM
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - compute
+      - scp
+      - --zone=us-central1-a
+      - deploy.sh
+      - mlops-subscriber:~/deploy.sh
+
   - name: 'gcr.io/cloud-builders/gcloud'
     args:
       - compute
       - ssh
       - mlops-subscriber
       - --zone=us-central1-a
-      - --tunnel-through-iap
-      - --command="sudo apt-get update && sudo apt-get install -y docker.io && sudo systemctl start docker && sudo gcloud auth configure-docker && sudo docker pull gcr.io/mlops-project-440315/subscriber && sudo docker stop subscriber-container || true && sudo docker rm subscriber-container || true && sudo docker run -d --name subscriber-container -v /fastapi_service:/app/fastapi_service --restart always gcr.io/mlops-project-440315/subscriber"
+      - --command="bash ~/deploy.sh"

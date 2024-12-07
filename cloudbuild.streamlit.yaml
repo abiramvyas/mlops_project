@@ -10,12 +10,38 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'gcr.io/mlops-project-440315/streamlit-ui']
   
-  # Deploy to streamline-fe VM using IAP tunneling
+  # Create deployment script
+  - name: 'ubuntu'
+    args:
+    - bash
+    - -c
+    - |
+      cat > deploy.sh << 'EOF'
+      #!/bin/bash
+      sudo apt-get update
+      sudo apt-get install -y docker.io
+      sudo systemctl start docker
+      sudo gcloud auth configure-docker
+      sudo docker pull gcr.io/mlops-project-440315/streamlit-ui
+      sudo docker stop streamlit-container || true
+      sudo docker rm streamlit-container || true
+      sudo docker run -d --name streamlit-container -p 8501:8501 -v /streamlit_ui:/app/streamlit_ui --restart always gcr.io/mlops-project-440315/streamlit-ui
+      EOF
+      chmod +x deploy.sh
+
+  # Copy and execute script on VM
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - compute
+      - scp
+      - --zone=us-central1-c
+      - deploy.sh
+      - streamline-fe:~/deploy.sh
+
   - name: 'gcr.io/cloud-builders/gcloud'
     args:
       - compute
       - ssh
       - streamline-fe
       - --zone=us-central1-c
-      - --tunnel-through-iap
-      - --command="sudo apt-get update && sudo apt-get install -y docker.io && sudo systemctl start docker && sudo gcloud auth configure-docker && sudo docker pull gcr.io/mlops-project-440315/streamlit-ui && sudo docker stop streamlit-container || true && sudo docker rm streamlit-container || true && sudo docker run -d --name streamlit-container -p 8501:8501 -v /streamlit_ui:/app/streamlit_ui --restart always gcr.io/mlops-project-440315/streamlit-ui"
+      - --command="bash ~/deploy.sh"
