@@ -2,20 +2,20 @@ options:
   logging: CLOUD_LOGGING_ONLY
 
 steps:
-  # Build the Streamlit container
+  # Build the Subscriber container
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'gcr.io/mlops-project-440315/streamlit-ui', '-f', 'Dockerfile.streamlit', '.']
+    args: ['build', '-t', 'gcr.io/mlops-project-440315/subscriber', '-f', 'Dockerfile.subscriber', '.']
   
   # Push to Container Registry
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/mlops-project-440315/streamlit-ui']
+    args: ['push', 'gcr.io/mlops-project-440315/subscriber']
   
-  # Deploy to streamline-fe VM using IAP tunneling
+  # Deploy to mlops-subscriber VM using IAP tunneling
   - name: 'gcr.io/cloud-builders/gcloud'
     args:
       - compute
       - ssh
-      - streamline-fe
-      - --zone=us-central1-c
+      - mlops-subscriber
+      - --zone=us-central1-a
       - --tunnel-through-iap
-      - --command="gcloud auth configure-docker && docker pull gcr.io/mlops-project-440315/streamlit-ui && docker stop streamlit-container || true && docker rm streamlit-container || true && docker run -d --name streamlit-container -p 8501:8501 --restart always gcr.io/mlops-project-440315/streamlit-ui"
+      - --command="sudo apt-get update && sudo apt-get install -y docker.io && sudo systemctl start docker && sudo usermod -aG docker $USER && sudo gcloud auth configure-docker && sudo docker pull gcr.io/mlops-project-440315/subscriber && sudo docker stop subscriber-container || true && sudo docker rm subscriber-container || true && sudo docker run -d --name subscriber-container -v $(pwd)/fastapi_service:/app/fastapi_service --restart always gcr.io/mlops-project-440315/subscriber"
