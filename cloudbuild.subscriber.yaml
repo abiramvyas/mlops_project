@@ -10,13 +10,14 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'gcr.io/mlops-project-440315/subscriber']
   
-  # Deploy to mlops-subscriber VM using gcloud compute ssh
+  # Deploy to mlops-subscriber VM using IAP tunneling
   - name: 'gcr.io/cloud-builders/gcloud'
     args:
       - compute
       - ssh
       - mlops-subscriber
       - --zone=us-central1-a
+      - --tunnel-through-iap
       - --command=|
           gcloud auth configure-docker && \
           docker pull gcr.io/mlops-project-440315/subscriber && \
