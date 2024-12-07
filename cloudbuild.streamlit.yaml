@@ -1,0 +1,28 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/mlops-project-440315/streamlit-ui', '-f', 'Dockerfile.streamlit', '.']
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/mlops-project-440315/streamlit-ui']
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args:
+    - '-c'
+    - |
+      echo "$$SSH_KEY" > /root/.ssh/id_rsa
+      chmod 400 /root/.ssh/id_rsa
+      ssh -o StrictHostKeyChecking=no abvy8498@34.121.73.92 '
+        gcloud auth configure-docker && \
+        docker pull gcr.io/mlops-project-440315/streamlit-ui && \
+        docker stop streamlit-container || true && \
+        docker rm streamlit-container || true && \
+        docker run -d --name streamlit-container \
+          -p 8501:8501 \
+          --restart always \
+          gcr.io/mlops-project-440315/streamlit-ui
+      '
+    secretEnv: ['SSH_KEY']
+
+availableSecrets:
+  secretManager:
+    - versionName: projects/mlops-project-440315/secrets/vm-ssh-key/versions/latest
+      env: 'SSH_KEY'
